@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+# Mutex: solo una instancia a la vez. Sin esto, clicks rápidos al toggle
+# de dark/light mode disparaban procesos en paralelo que se sobrescribían
+# entre sí — el último en terminar ganaba, no el último en clickear.
+# `flock -n` no espera: si hay otro proceso, descarta este click.
+LOCK_FILE="/tmp/switchwall-${UID}.lock"
+exec 200>"$LOCK_FILE"
+if ! flock -n 200; then
+    echo "[switchwall] otra instancia en curso, descartando este disparo" >&2
+    exit 0
+fi
+
 QUICKSHELL_CONFIG_NAME="ii"
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
@@ -155,12 +166,6 @@ set_thumbnail_path() {
     fi
 }
 
-categorize_wallpaper() {
-    img_cat=$("$SCRIPT_DIR/../ai/gemini-categorize-wallpaper.sh" "$1")
-    # notify-send "Wallpaper category" "$img_cat"
-    echo "$img_cat" > "$STATE_DIR/user/generated/wallpaper/category.txt"
-}
-
 switch() {
     imgpath="$1"
     mode_flag="$2"
@@ -169,9 +174,9 @@ switch() {
     color="$5"
 
     # Start Gemini auto-categorization if enabled
-    aiStylingEnabled=$(jq -r '.background.widgets.clock.cookie.aiStyling' "$SHELL_CONFIG_FILE")
+    aiStylingEnabled=$(jq -r '.background.clock.cookie.aiStyling' "$SHELL_CONFIG_FILE")
     if [[ "$aiStylingEnabled" == "true" ]]; then
-        categorize_wallpaper "$imgpath" &
+        "$SCRIPT_DIR/../ai/gemini-categorize-wallpaper.sh" "$imgpath" > "$STATE_DIR/user/generated/wallpaper/category.txt" &
     fi
 
     read scale screenx screeny screensizey < <(hyprctl monitors -j | jq '.[] | select(.focused) | .scale, .x, .y, .height' | xargs)
@@ -181,10 +186,8 @@ switch() {
     cursorposy=$(bc <<< "scale=0; ($cursorposy - $screeny) * $scale / 1")
     cursorposy_inverted=$((screensizey - cursorposy))
 
-    matugen_args=(--source-color-index 0)
-
     if [[ "$color_flag" == "1" ]]; then
-        matugen_args+=(color hex "$color")
+        matugen_args=(color hex "$color")
         generate_colors_material_args=(--color "$color")
     else
         if [[ -z "$imgpath" ]]; then
@@ -242,7 +245,7 @@ switch() {
             set_thumbnail_path "$thumbnail"
 
             if [ -f "$thumbnail" ]; then
-                matugen_args+=(image "$thumbnail")
+                matugen_args=(image "$thumbnail")
                 generate_colors_material_args=(--path "$thumbnail")
                 create_restore_script "$video_path"
             else
@@ -251,7 +254,7 @@ switch() {
                 exit 1
             fi
         else
-            matugen_args+=(image "$imgpath")
+            matugen_args=(image "$imgpath")
             generate_colors_material_args=(--path "$imgpath")
             # Update wallpaper path in config
             set_wallpaper_path "$imgpath"
@@ -412,12 +415,6 @@ main() {
     if [[ -z "$imgpath" && -z "$color_flag" && -z "$noswitch_flag" ]]; then
         cd "$(xdg-user-dir PICTURES)/Wallpapers/showcase" 2>/dev/null || cd "$(xdg-user-dir PICTURES)/Wallpapers" 2>/dev/null || cd "$(xdg-user-dir PICTURES)" || return 1
         imgpath="$(kdialog --getopenfilename . --title 'Choose wallpaper')"
-    fi
-
-    if [[ -n "$imgpath" && -z "$noswitch_flag" ]]; then
-        set_accent_color ""
-        color_flag=""
-        color=""
     fi
 
     # If type_flag is 'auto', detect scheme type from image (after imgpath is set)
