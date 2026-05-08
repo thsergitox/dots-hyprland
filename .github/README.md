@@ -1,3 +1,12 @@
+<!--
+  Personal fork notice. Original README from end-4 follows below.
+-->
+
+> **🍴 Personal fork** by [@thsergitox](https://github.com/thsergitox) of [end-4/dots-hyprland](https://github.com/end-4/dots-hyprland).
+> Forked at commit `da994373`, with personal customizations on top. See [**Fork features**](#-fork-features) at the end of this README, or `git log --oneline da994373..main` for the full diff.
+
+---
+
 <div align="center">
     <h1>【 end_4's Hyprland dotfiles 】</h1>
     <h3></h3>
@@ -170,4 +179,104 @@ Widget system: EWW | Support: No
 
  - Inspiration: osu!lazer (Hybrid), Windows 11 (Windoes), AvdanOS (NovelKnock), Material Design 3 (m3ww & later)
  - Copying: Absolutely, feel free. Just follow the license and it's all good
- 
+
+---
+
+## 🍴 Fork features
+
+Personalizaciones agregadas a este fork por [@thsergitox](https://github.com/thsergitox), en orden cronológico:
+
+| Commit | Qué hace |
+|---|---|
+| `feat(bar/clock)` | Calendario mensual en el popup del reloj + popup sticky (click-toggle, click-afuera-cierra). El popup también muestra las tareas urgentes (locales + Google Tasks) con check button |
+| `fix(sidebarRight)` | TextFields del sidebar derecho ahora reciben input (cambio `keyboardFocus: OnDemand`) |
+| `feat(google-tasks)` | Integración Google Tasks read+complete: pestaña dedicada en el sidebar, sort por due, subtasks anidadas con accordion, botón check sincroniza con Google. Ver [setup abajo](#setup-google-tasks) |
+| `feat(calendar)` | Vista año (12 mini-meses simultáneos) + selector rápido año/mes (popover). 2 clicks a cualquier mes |
+| `feat(screenshot)` | Después de `Super+Shift+S` y seleccionar área, abre `swappy` para anotar la captura (texto, flechas, blur). La imagen también queda en el clipboard |
+| `feat(bar/resources)` | Popup expandido del bar con GPU NVIDIA, temperaturas (CPU/GPU/SSD/chasis), velocidad de ventiladores, frecuencia CPU, disco, red, top procesos por CPU/RAM agrupados |
+| `fix(scripts/colors)` | `flock` en `switchwall.sh` previene race conditions del toggle dark/light (ya no se acumulan procesos al clickear rápido) |
+
+### Instalación
+
+```fish
+git clone https://github.com/thsergitox/dots-hyprland.git
+cd dots-hyprland
+./setup install
+```
+
+Para deps base, ver el README oficial arriba.
+
+### Setup Google Tasks
+
+La pestaña "Google" del Todo widget del sidebar derecho lee tus tareas de Google Tasks y permite marcarlas como completadas. Requiere autorización OAuth una sola vez por máquina.
+
+**1. Crear OAuth client en Google Cloud Console**
+
+1. Ir a https://console.cloud.google.com.
+2. **Crear proyecto** (recomendado: con cuenta personal de Gmail, no con cuenta de organización/uni — sino el admin del dominio queda con acceso al proyecto).
+3. **APIs & Services → Library** → buscar `Tasks API` → **Enable**.
+4. **APIs & Services → OAuth consent screen**:
+   - User type: **External**.
+   - Llenar app name + tu email + scopes vacío.
+   - En **Test users**, agregar tu email (mientras la app esté en "Testing", solo emails listados pueden autorizar).
+5. **APIs & Services → Credentials → Create Credentials → OAuth client ID**:
+   - Application type: **Desktop app**.
+   - **Download JSON** del cliente recién creado.
+
+**2. Conectar tu cuenta**
+
+```fish
+bash ~/.config/quickshell/ii/scripts/google/setup.sh
+mv ~/Downloads/client_secret_*.json ~/.local/state/quickshell/google/credentials.json
+chmod 600 ~/.local/state/quickshell/google/credentials.json
+bash ~/.config/quickshell/ii/scripts/google/tasks.sh auth
+```
+
+Al correr `tasks.sh auth`:
+- Se abre el browser con la pantalla de consentimiento de Google.
+- Tras autorizar, vas a ver una página **"Site can't be reached"** — es esperado, no hay servidor escuchando.
+- Si te aparece **"Google hasn't verified this app"**, click en **Advanced → Go to (app) (unsafe)** (apps personales no verificadas, normal).
+- **Copiá la URL completa de la barra de direcciones** (incluye `?code=XXX&...`) y pegala en la terminal.
+
+**3. Verificar**
+
+```fish
+bash ~/.config/quickshell/ii/scripts/google/tasks.sh list | jq
+```
+
+Debería imprimir tus tareas pendientes.
+
+Después reiniciá quickshell:
+```fish
+qs -c ii kill; qs -c ii &
+```
+
+Sidebar derecho → 3ra pestaña (icono nube) → tus tareas.
+
+**Documentación detallada** (códigos de error, estructura de archivos, limitaciones, cómo revocar acceso): [`dots/.config/quickshell/ii/scripts/google/README.md`](../dots/.config/quickshell/ii/scripts/google/README.md)
+
+### Otras notas del fork
+
+- **Editor de screenshots**: por default usa `swappy`. Si querés `satty`: `yay -S satty` y poner `appearance.regionSelector.annotation.useSatty = true` en `~/.config/illogical-impulse/config.json`.
+- **Modo dark/light**: el toggle puede tardar 15-30s (matugen + python). Si clickeás varias veces rápido, los clicks extra se descartan (lockfile). Esperá a que termine el primero.
+- **GPU NVIDIA en Optimus**: la card "GPU" del popup de resources muestra "GPU dormida" cuando la dGPU no está activa (comportamiento normal en laptops AMD+NVIDIA). Para usar la dGPU explícitamente: `prime-run app` o `__NV_PRIME_RENDER_OFFLOAD=1 app`.
+
+### Datos sensibles que NO están en el repo
+
+- `~/.local/state/quickshell/google/credentials.json` — OAuth client (de Google Cloud).
+- `~/.local/state/quickshell/google/token.json` — access + refresh tokens.
+
+Cuando reinstales en una máquina nueva, hay que regenerar/reautorizar estos siguiendo el setup de arriba.
+
+### Sincronizar con upstream
+
+Tu upstream (`end-4/dots-hyprland`) sigue avanzando. Para traer cambios:
+
+```fish
+git fetch upstream
+git diff upstream/main main
+git merge upstream/main   # va a haber conflictos en archivos divergentes
+```
+
+**No recomendado a corto plazo** — los archivos modificados pueden romper APIs nuevas del upstream.
+
