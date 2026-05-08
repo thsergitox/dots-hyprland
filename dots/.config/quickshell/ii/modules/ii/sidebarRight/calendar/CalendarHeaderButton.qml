@@ -7,6 +7,7 @@ RippleButton {
     property string buttonText: ""
     property string tooltipText: ""
     property bool forceCircle: false
+    property int fontSize: Appearance.font.pixelSize.larger
 
     implicitHeight: 30
     implicitWidth: forceCircle ? implicitHeight : (contentItem.implicitWidth + 10 * 2)
@@ -25,7 +26,7 @@ RippleButton {
     contentItem: StyledText {
         text: buttonText
         horizontalAlignment: Text.AlignHCenter
-        font.pixelSize: Appearance.font.pixelSize.larger
+        font.pixelSize: button.fontSize
         color: Appearance.colors.colOnLayer1
     }
 
