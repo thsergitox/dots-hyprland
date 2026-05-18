@@ -12,6 +12,8 @@ Item {
     property alias description: widgetDescriptionText.text
     property alias shape: shapeWidget.shape
     property alias descriptionHorizontalAlignment: widgetDescriptionText.horizontalAlignment
+    property int iconSize: 56
+    property int iconPadding: 12
 
     opacity: shown ? 1 : 0
     visible: opacity > 0
@@ -32,8 +34,8 @@ Item {
         MaterialShapeWrappedMaterialSymbol {
             id: shapeWidget
             Layout.alignment: Qt.AlignHCenter
-            padding: 12
-            iconSize: 56
+            padding: root.iconPadding
+            iconSize: root.iconSize
             rotation: -30 * (1 - root.opacity)
         }
         StyledText {

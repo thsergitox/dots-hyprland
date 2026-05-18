@@ -11,6 +11,7 @@ Rectangle {
     id: root
     radius: Appearance.rounding.normal
     color: Appearance.colors.colLayer1
+    clip: true   // evita que el icono placeholder de notificaciones se desborde al calendario
 
     NotificationList {
         anchors.fill: parent

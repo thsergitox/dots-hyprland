@@ -30,13 +30,27 @@ Item {
         popup: false
     }
 
-    // Placeholder when list is empty
-    PagePlaceholder {
-        shown: Notifications.list.length === 0
-        icon: "notifications_active"
-        description: Translation.tr("Nothing")
-        shape: MaterialShape.Shape.Ghostish
-        descriptionHorizontalAlignment: Text.AlignHCenter
+    // Placeholder when list is empty.
+    // Lo envolvemos en un Item con anchors top→statusRow.top y clip,
+    // para que el icono no se monte sobre la barra de status ni se
+    // desborde al widget de abajo cuando el sidebar está angosto.
+    Item {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: statusRow.top
+        anchors.bottomMargin: 5
+        clip: true
+
+        PagePlaceholder {
+            shown: Notifications.list.length === 0
+            icon: "notifications_active"
+            description: Translation.tr("Nothing")
+            shape: MaterialShape.Shape.Ghostish
+            descriptionHorizontalAlignment: Text.AlignHCenter
+            iconSize: 36
+            iconPadding: 8
+        }
     }
 
     ButtonGroup {
