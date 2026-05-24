@@ -172,11 +172,14 @@ switch() {
     type_flag="$3"
     color_flag="$4"
     color="$5"
+    noswitch_flag="$6"
 
-    # Start Gemini auto-categorization if enabled
+    # Start Gemini auto-categorization if enabled.
+    # `exec 200>&-` cierra el fd del flock en el subshell: si Gemini cuelga
+    # por timeout de red, el background no sostiene el lock del padre.
     aiStylingEnabled=$(jq -r '.background.clock.cookie.aiStyling' "$SHELL_CONFIG_FILE")
     if [[ "$aiStylingEnabled" == "true" ]]; then
-        "$SCRIPT_DIR/../ai/gemini-categorize-wallpaper.sh" "$imgpath" > "$STATE_DIR/user/generated/wallpaper/category.txt" &
+        ( exec 200>&-; "$SCRIPT_DIR/../ai/gemini-categorize-wallpaper.sh" "$imgpath" > "$STATE_DIR/user/generated/wallpaper/category.txt" ) &
     fi
 
     read scale screenx screeny screensizey < <(hyprctl monitors -j | jq '.[] | select(.focused) | .scale, .x, .y, .height' | xargs)
@@ -195,7 +198,15 @@ switch() {
             exit 0
         fi
 
-        check_and_prompt_upscale "$imgpath" &
+        # Solo preguntar por upscale cuando el usuario realmente cambia wallpaper.
+        # En --noswitch (toggle de modo) es ruido: bloquearía esperando respuesta
+        # de una notificación que el usuario nunca pidió.
+        # Subshell con `exec 200>&-` cierra el fd del flock: si el usuario no
+        # responde la notificación, el background queda colgado en notify-send
+        # pero NO sostiene el lock — el padre termina normal y libera el mutex.
+        if [[ -z "$noswitch_flag" ]]; then
+            ( exec 200>&-; check_and_prompt_upscale "$imgpath" ) &
+        fi
         kill_existing_mpvpaper
 
         if is_video "$imgpath"; then
@@ -270,6 +281,15 @@ switch() {
         else
             mode_flag="light"
         fi
+    fi
+
+    # matugen 4.x pide --prefer cuando una imagen tiene múltiples colores
+    # fuente y no hay TTY (Quickshell invoca sin terminal interactiva).
+    # Sin esto, matugen falla → colors.json no se regenera → el toggle
+    # de dark/light en el bar queda pegado porque MaterialThemeLoader nunca
+    # detecta cambio. `saturation` elige el color más vibrante de la imagen.
+    if [[ "${matugen_args[0]}" == "image" ]]; then
+        matugen_args+=(--prefer saturation)
     fi
 
     # enforce dark mode for terminal
@@ -441,7 +461,7 @@ main() {
         fi
     fi
 
-    switch "$imgpath" "$mode_flag" "$type_flag" "$color_flag" "$color"
+    switch "$imgpath" "$mode_flag" "$type_flag" "$color_flag" "$color" "$noswitch_flag"
 }
 
 main "$@"
