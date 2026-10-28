@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Service
+Name=Comprimir en ZIP…
+MimeType=application/octet-stream;inode/directory;
+Actions=compressZip;
+X-KDE-Protocol=file
+X-KDE-Priority=TopLevel
+
+[Desktop Action compressZip]
+Name=Comprimir en ZIP…
+Name[en]=Compress to ZIP…
+Name[es]=Comprimir en ZIP…
+Icon=archive-insert
+Exec=sh -c "exec \\"\\${XDG_CONFIG_HOME:-\\$HOME/.config}/dolphin/compress-zip.sh\\" \\"\\$@\\"" dolphin-compress-zip %F

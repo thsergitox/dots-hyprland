@@ -196,12 +196,17 @@ Personalizaciones agregadas a este fork por [@thsergitox](https://github.com/ths
 | `feat(bar/resources)` | Popup expandido del bar con GPU NVIDIA, temperaturas (CPU/GPU/SSD/chasis), velocidad de ventiladores, frecuencia CPU, disco, red, top procesos por CPU/RAM agrupados |
 | `fix(scripts/colors)` | `flock` en `switchwall.sh` previene race conditions del toggle dark/light (ya no se acumulan procesos al clickear rápido) |
 | `feat(dolphin)` | Acción «Descomprimir aquí» para ZIP y RAR en el menú contextual. Extrae en la carpeta del archivo, conservando su estructura interna, con `unzip` y `unrar` |
+| `feat(dolphin/zip)` | Acción «Comprimir en ZIP…» para archivos y carpetas, con selección múltiple y diálogo para elegir nombre y destino |
 
 ### Descomprimir desde Dolphin
 
 Haz clic derecho sobre uno o varios archivos `.zip` o `.rar` y elige **Descomprimir aquí** (o **Extract Here** si usas Dolphin en inglés). Requiere `unzip`, `unrar` y `konsole`. La terminal muestra el progreso y permite introducir contraseñas o confirmar reemplazos; se cierra al terminar correctamente y mantiene los errores visibles. No crea una carpeta contenedora adicional ni elimina el comprimido.
 
 Ambos instaladores incluyen el script de `dots/.config/dolphin/` y el menú de `dots/.local/share/kio/servicemenus/`. El menú utiliza el mecanismo de [Service Menus de KDE](https://develop.kde.org/docs/apps/dolphin/service-menus/).
+
+### Comprimir desde Dolphin
+
+Selecciona uno o varios archivos o carpetas, haz clic derecho y elige **Comprimir en ZIP…**. El diálogo permite elegir el nombre y la ubicación, añade `.zip` si falta y confirma los reemplazos. Conserva las carpetas internas, los archivos ocultos y los enlaces simbólicos. Requiere `zip` y `kdialog`; ambos instaladores incluyen esta acción. El ZIP se crea en un archivo temporal antes de reemplazar el destino, sin conservar entradas de un ZIP anterior.
 
 ### Instalación
 
