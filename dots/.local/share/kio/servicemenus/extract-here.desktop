@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Service
+Name=Descomprimir aquí
+MimeType=application/zip;application/vnd.rar;
+Actions=extractHere;
+X-KDE-Protocol=file
+X-KDE-Priority=TopLevel
+
+[Desktop Action extractHere]
+Name=Descomprimir aquí
+Name[en]=Extract Here
+Name[es]=Descomprimir aquí
+Icon=archive-extract
+Exec=sh -c "exec konsole --separate --hide-menubar -e \\"\\${XDG_CONFIG_HOME:-\\$HOME/.config}/dolphin/extract-here.sh\\" \\"\\$@\\"" dolphin-extract-here %F

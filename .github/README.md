@@ -195,6 +195,13 @@ Personalizaciones agregadas a este fork por [@thsergitox](https://github.com/ths
 | `feat(screenshot)` | Después de `Super+Shift+S` y seleccionar área, abre `swappy` para anotar la captura (texto, flechas, blur). La imagen también queda en el clipboard |
 | `feat(bar/resources)` | Popup expandido del bar con GPU NVIDIA, temperaturas (CPU/GPU/SSD/chasis), velocidad de ventiladores, frecuencia CPU, disco, red, top procesos por CPU/RAM agrupados |
 | `fix(scripts/colors)` | `flock` en `switchwall.sh` previene race conditions del toggle dark/light (ya no se acumulan procesos al clickear rápido) |
+| `feat(dolphin)` | Acción «Descomprimir aquí» para ZIP y RAR en el menú contextual. Extrae en la carpeta del archivo, conservando su estructura interna, con `unzip` y `unrar` |
+
+### Descomprimir desde Dolphin
+
+Haz clic derecho sobre uno o varios archivos `.zip` o `.rar` y elige **Descomprimir aquí** (o **Extract Here** si usas Dolphin en inglés). Requiere `unzip`, `unrar` y `konsole`. La terminal muestra el progreso y permite introducir contraseñas o confirmar reemplazos; se cierra al terminar correctamente y mantiene los errores visibles. No crea una carpeta contenedora adicional ni elimina el comprimido.
+
+Ambos instaladores incluyen el script de `dots/.config/dolphin/` y el menú de `dots/.local/share/kio/servicemenus/`. El menú utiliza el mecanismo de [Service Menus de KDE](https://develop.kde.org/docs/apps/dolphin/service-menus/).
 
 ### Instalación
 
